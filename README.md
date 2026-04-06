@@ -131,7 +131,7 @@ Regardless of whether you install the application globally or run it as a local 
 *   **tilas01**: Project Owner, Lead Developer, and Original Concept.
 *   **Google Gemini**: World-class AI coding assistant.
 
-> **Note:** Artificial Intelligence (**Google Gemini**) was utilized as a resource for researching syntax, documentation standards, and architectural best practices. Only small, specific segments of the code and descriptive text within this repository are directly AI-generated.
+> **Note:** Artificial Intelligence (**Google Gemini**) was utilized as a resource for researching syntax, documentation standards, and architectural best practices. Only small, specific segments of the code and descriptive text within this repository are entirely AI-generated.
 
 ## License
 This project is licensed under the **MIT License**. See the `LICENSE` file for details.
