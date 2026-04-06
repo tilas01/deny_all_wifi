@@ -14,7 +14,7 @@ import (
 
 const (
 	ConfigFileName = "deny_all_wifi.conf"
-	Version        = "1.2.0"
+	Version        = "1.4.0"
 )
 
 type Config struct {

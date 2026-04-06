@@ -2,7 +2,7 @@
 
 clear
 echo "---------------------------------------------------------"
-echo "   deny_all_wifi v1.2.0 (Bash): BETTERCAP ARP.BAN AUTOMATION"
+echo "   deny_all_wifi v1.4.0 (Bash): BETTERCAP ARP.BAN AUTOMATION"
 echo "---------------------------------------------------------"
 echo ""
 
