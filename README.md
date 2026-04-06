@@ -1,21 +1,22 @@
-# Bettercap ARP.Ban Auto-Execution Module
+# deny_all_wifi: Bettercap ARP.Ban Auto-Execution Module
 
-A professional, automated wrapper designed to streamline network security testing using Bettercap's `arp.ban` module. 
+A professional, automated wrapper designed to streamline network security testing using Bettercap's `arp.ban` module. **deny_all_wifi** simplifies complex network auditing tasks into a reliable, automated workflow.
 
 Originally developed as a private Bash tool, this project has been completely rewritten in **Go** to provide a robust, high-performance, and feature-rich public application.
 
 ## Table of Contents
-- Requirements
-- Project Overview
-- Legal Warning & Disclaimer
-- How It Works
-- Features
-- Installation
-  - Automated Build & Install
-- Usage
-- Configuration
-- Credits
-- License
+- [Requirements](#requirements)
+- [Project Overview](#project-overview)
+- [Legal Warning & Disclaimer](#legal-warning--disclaimer)
+- [How It Works](#how-it-works)
+- [Features](#features)
+- [Dependency Lists](#dependency-lists)
+- [Installation](#installation)
+  - [Automated Build & Install](#automated-build--install)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Credits](#credits)
+- [License](#license)
 
 ---
 
@@ -28,10 +29,10 @@ To use this tool, your system must meet the following criteria:
     *   **Runtime:** `bettercap`, `macchanger`, `iproute2`.
     *   **Build:** `golang` (only required if compiling from source).
 
-> **Note:** Both the `install.sh` script and the application will offer to automatically install these dependencies if they are missing.
+> **Note:** The application performs a dependency check upon launch. If tools are missing, the software will provide guidance or offer to install them via your system package manager.
 
 ## Project Overview
-The **Bettercap ARP.Ban Auto-Execution Module** is an automation utility that simplifies the process of performing ARP spoofing and Denial of Service (DoS) testing. It eliminates the need for manual command construction by automatically scanning for wireless interfaces, randomizing hardware addresses for OPSEC, and deploying a pre-configured Bettercap attack sequence.
+**deny_all_wifi** is an automation utility that simplifies the process of performing ARP spoofing and Denial of Service (DoS) testing. It eliminates the need for manual command construction by automatically scanning for wireless interfaces, randomizing hardware addresses for OPSEC, and deploying a pre-configured Bettercap attack sequence.
 
 ## Legal Warning & Disclaimer
 **[!] IMPORTANT: READ CAREFULLY [!]**
@@ -49,9 +50,9 @@ This tool includes a feature to auto-install missing dependencies via your syste
 The program follows a logical security workflow:
 1.  **Privilege Check:** Verifies root/sudo access (required for raw socket manipulation).
 2.  **Interface Selection:** Scans the system for Wi-Fi adapters and displays their IPv4, IPv6, and Gateway information in a neat table.
-3.  **OPSEC (MAC Randomization):** Temporarily takes the selected interface down, randomizes the MAC address using `macchanger` (burned-in address simulation), and brings the interface back up.
-4.  **Configuration Loading:** Loads or creates a configuration file stored in `~/bettercap_conf/`.
-5.  **Attack Deployment:** Constructs a Bettercap script based on your settings (Full Duplex, Sniffing, Internal Spoofing, Whitelisting) and launches the `arp.ban` module.
+3.  **OPSEC (MAC Randomization):** Temporarily takes the selected interface down, randomizes the MAC address using `macchanger`, and brings the interface back up.
+4.  **Configuration Loading:** Loads or creates a persistent configuration file stored in your home directory.
+5.  **Attack Deployment:** Constructs a Bettercap script based on your profile and launches the `arp.ban` module.
 
 ## Features
 *   **Automatic Dependency Check:** Detects and offers to install missing tools like `bettercap`, `macchanger`, and `iproute2`.
@@ -113,10 +114,9 @@ sudo ./deny_all_wifi
 5.  **Press `Ctrl+C`** at any time to stop the attack and return the network to normal.
 
 ## Configuration
-The configuration file is stored at:
-`~/bettercap_conf/deny_all_wifi.conf`
+The configuration file is stored globally to ensure your settings persist regardless of how or where you run the tool:
 
-You can edit this file manually or allow the program to update it via the **Interactive Mode**.
+`~/bettercap_conf/deny_all_wifi.conf`
 
 | Setting | Description |
 | :--- | :--- |
@@ -126,11 +126,10 @@ You can edit this file manually or allow the program to update it via the **Inte
 | `whitelist` | A comma-separated list of IPs or MACs to ignore. |
 
 ## Credits
-*   **tilas01**: Project Owner and Lead Developer.
-*   **Google Gemini**: World-class engineering assistance in the coding and conversion of both the Bash and Go applications.
-The following credits apply to any and all files included within the `deny_all_wifi` GitHub repository:
 *   **tilas01**: Project Owner, Lead Developer, and Original Concept.
-*   **Google Gemini**: World-class engineering assistance in the architecture, coding, and conversion of both the Bash and Go applications.
+*   **Google Gemini**: World-class AI coding assistant.
+
+> **Note:** Artificial Intelligence (**Google Gemini**) was utilized as a resource for researching syntax, documentation standards, and architectural best practices. Only small, specific segments of the code and descriptive text within this repository are directly AI-generated.
 
 ## License
 This project is licensed under the **MIT License**. See the `LICENSE` file for details.

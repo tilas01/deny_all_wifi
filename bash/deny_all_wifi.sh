@@ -57,11 +57,10 @@ echo "[+] Root privileges confirmed."
 echo -e "\n----------------------- LEGAL WARNING -----------------------"
 echo -e "[!] ONLY run this script on networks you own or where you have"
 echo -e "    explicit permission from the owner to perform testing. [!]\n"
-echo "This script requires root privileges. You will be prompted to"
-echo "escalate if the script is not already running as root."
-echo ""
-echo "This will block ALL devices on the network unless whitelisted."
-echo "This is achieved via ARP spoofing/poisoning (DoS) using the"
+echo "This script requires root privileges. It will block ALL"
+echo "devices on the network unless whitelisted via ARP poisoning."
+echo "-------------------------------------------------------------"
+
 echo "Bettercap 'arp.ban' module and other integrated utilities."
 echo "-------------------------------------------------------------"
 
@@ -157,8 +156,8 @@ echo -e "\n[+] Scanning for Wi-Fi Interfaces...\n"
 printf "%-4s | %-15s | %-15s | %-45s | %-15s\n" "Num" "Interface" "IPv4" "IPv6" "Gateway"
 printf "%-4s | %-15s | %-15s | %-45s | %-15s\n" "----" "---------------" "---------------" "---------------------------------------------" "---------------"
 
-interfaces=()
-i=1
+declare -a interfaces
+idx=1
 for iface_path in /sys/class/net/*/wireless; do
 	[ ! -d "$iface_path" ] && continue
 	iface=$(basename $(dirname "$iface_path"))
@@ -172,8 +171,8 @@ for iface_path in /sys/class/net/*/wireless; do
 	[ -z "$ipv6" ] && ipv6="N/A"
 	[ -z "$gw" ] && gw="N/A"
 	
-	printf "%-4s | %-15s | %-15s | %-45s | %-15s\n" "$i" "$iface" "$ipv4" "$ipv6" "$gw"
-	((i++))
+	printf "%-4d | %-15s | %-15s | %-45s | %-15s\n" "$idx" "$iface" "$ipv4" "$ipv6" "$gw"
+	((idx++))
 done
 
 if [ ${#interfaces[@]} -eq 0 ]; then
@@ -183,23 +182,8 @@ fi
 
 echo ""
 while true; do
-	read -p "[?] Select an interface by number (default wlan0): " iface_num
-	if [[ -z "$iface_num" ]]; then
-		found_wlan0=false
-		for ifc in "${interfaces[@]}"; do
-			if [[ "$ifc" == "wlan0" ]]; then
-				found_wlan0=true
-				break
-			fi
-		done
-		
-		if [ "$found_wlan0" = true ]; then
-			INTERFACE="wlan0"
-			break
-		else
-			echo "[-] ERROR: 'wlan0' not found in the list. Please enter a valid number."
-		fi
-	elif [[ "$iface_num" =~ ^[0-9]+$ ]] && [ "$iface_num" -ge 1 ] && [ "$iface_num" -le "${#interfaces[@]}" ]; then
+	read -p "[?] Select an interface by number (1-${#interfaces[@]}): " iface_num
+	if [[ "$iface_num" =~ ^[0-9]+$ ]] && [ "$iface_num" -ge 1 ] && [ "$iface_num" -le "${#interfaces[@]}" ]; then
 		INTERFACE="${interfaces[$((iface_num-1))]}"
 		break
 	else
@@ -207,9 +191,10 @@ while true; do
 	fi
 done
 
-echo "[+] Selected interface: $INTERFACE"
+CONFIG_DIR="$HOME/bettercap_conf"
+mkdir -p "$CONFIG_DIR"
+CONFIG_FILE="$CONFIG_DIR/deny_all_wifi.conf"
 
-CONFIG_FILE="deny_all_wifi.conf"
 FULL_DUPLEX=""
 SNIFF_TRAFFIC=""
 SPOOF_INTERNAL=""
@@ -226,10 +211,10 @@ EOF
 }
 
 setup_config() {
-	echo -e "\n[i] Creating a new configuration file."
+	echo -e "\n[i] No configuration file found. Creating new config at: $CONFIG_FILE"
 	echo "[i] 'Interactive' mode will allow you to configure the file right here from the command prompt."
 	while true; do
-		read -p "[?] Would you like to use 'default' variables or set them 'interactively'? (default/interactive): " config_mode
+		read -p "[?] Use 'default' or 'interactive' config? (d/i): " config_mode
 		if [[ "$config_mode" == "default" || "$config_mode" == "d" ]]; then
 			FULL_DUPLEX="yes"; SNIFF_TRAFFIC="yes"; SPOOF_INTERNAL="yes"; WHITELIST="no"
 			
@@ -255,35 +240,21 @@ setup_config() {
 			esac
 		elif [[ "$config_mode" == "interactive" || "$config_mode" == "i" ]]; then
 			echo -e "\n[+] --- Interactive Configuration ---"
-			while true; do
-				read -p "[?] Enable Full Duplex mode? (targets both router and devices) (yes/no): " input_fd
-				if [[ "$input_fd" == "yes" || "$input_fd" == "y" || "$input_fd" == "no" || "$input_fd" == "n" ]]; then
-					FULL_DUPLEX="$input_fd"
-					break
-				else
-					echo "[-] Invalid input. Please enter 'yes' or 'no'."
-				fi
-			done
+			
+			ask_yes_no() {
+				local prompt="$1"
+				while true; do
+					read -p "[?] $prompt (y/n): " ans
+					case "${ans,,}" in
+						y|yes) echo "yes"; return ;;
+						n|no) echo "no"; return ;;
+					esac
+				done
+			}
 
-			while true; do
-				read -p "[?] Enable Traffic Sniffing? (yes/no): " input_st
-				if [[ "$input_st" == "yes" || "$input_st" == "y" || "$input_st" == "no" || "$input_st" == "n" ]]; then
-					SNIFF_TRAFFIC="$input_st"
-					break
-				else
-					echo "[-] Invalid input. Please enter 'yes' or 'no'."
-				fi
-			done
-
-			while true; do
-				read -p "[?] Enable Internal Spoofing? (ARP Spoof Local LAN Traffic) (yes/no): " input_si
-				if [[ "$input_si" == "yes" || "$input_si" == "y" || "$input_si" == "no" || "$input_si" == "n" ]]; then
-					SPOOF_INTERNAL="$input_si"
-					break
-				else
-					echo "[-] Invalid input. Please enter 'yes' or 'no'."
-				fi
-			done
+			FULL_DUPLEX=$(ask_yes_no "Enable Full Duplex mode?")
+			SNIFF_TRAFFIC=$(ask_yes_no "Enable Traffic Sniffing?")
+			SPOOF_INTERNAL=$(ask_yes_no "Enable Internal Spoofing?")
 
 			read -p "[?] Enter Whitelist (IPV4s/IPV6s/MACs separated by commas and then a space, e.g., 192.168.1.5, 00:11:22:33:44:55), or press Enter to disable: " input_wl
 			if [ -z "$input_wl" ]; then
@@ -336,6 +307,7 @@ while true; do
 	echo -e "\n-----------------------------------------------------"
 	echo "[i] CURRENT CONFIGURATION PROFILE"
 	echo "-----------------------------------------------------"
+	printf "    %-16s : %s\n" "Config Path" "$CONFIG_FILE"
 	printf "    %-16s : %s\n" "Full Duplex" "$FULL_DUPLEX"
 	printf "    %-16s : %s\n" "Sniff Traffic" "$SNIFF_TRAFFIC"
 	printf "    %-16s : %s\n" "Spoof Internal" "$SPOOF_INTERNAL"
