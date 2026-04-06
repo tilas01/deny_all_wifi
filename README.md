@@ -87,6 +87,7 @@ The easiest way to install is using the provided `install.sh` script. This scrip
     ```
 2.  Run the build script:
     ```bash
+    cd go
     chmod +x install.sh
     ./install.sh
     ```
