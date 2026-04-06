@@ -1,0 +1,6 @@
+# Private Info & Configs
+github_info
+deny_all_wifi.conf
+
+# Binaries
+deny_all_wifi
