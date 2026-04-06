@@ -72,6 +72,69 @@ check_and_install_go() {
     fi
 }
 
+check_runtime_dependencies() {
+    local deps=("bettercap" "macchanger" "iproute2")
+    local missing=()
+    
+    echo "[+] Checking runtime dependencies..."
+    for d in "${deps[@]}"; do
+        local check_bin="$d"
+        [[ "$d" == "iproute2" ]] && check_bin="ip"
+
+        if command -v "$check_bin" &> /dev/null; then
+            echo "[+] '$d' is installed."
+        else
+            echo "[-] '$d' (binary '$check_bin') is NOT installed."
+            missing+=("$d")
+        fi
+    done
+
+    local manager=""
+    local update_mgr=""
+    if command -v apt-get &> /dev/null; then
+        manager="sudo apt-get update && sudo apt-get install -y"
+        update_mgr="sudo apt-get install --only-upgrade -y"
+    elif command -v pacman &> /dev/null; then
+        manager="sudo pacman -S --noconfirm"
+        update_mgr="sudo pacman -Sy --noconfirm"
+    elif command -v dnf &> /dev/null; then
+        manager="sudo dnf install -y"
+        update_mgr="sudo dnf upgrade -y"
+    elif command -v zypper &> /dev/null; then
+        manager="sudo zypper install -y"
+        update_mgr="sudo zypper update -y"
+    fi
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "[!] Some runtime dependencies are missing: ${missing[*]}"
+        read -p "[?] Would you like to attempt to auto-install them? (yes/no): " choice
+        if [[ "$choice" =~ ^[Yy] ]]; then
+            if [ -z "$manager" ]; then
+                echo "[-] Error: No recognized package manager found. Please install manually."
+                exit 1
+            fi
+            for pkg in "${missing[@]}"; do
+                read -p "[?] Install package '$pkg'? (yes/no): " pkg_choice
+                if [[ "$pkg_choice" =~ ^[Yy] ]]; then
+                    eval "$manager $pkg"
+                else
+                    echo "[-] Skipping '$pkg'. Build may be incomplete."
+                fi
+            done
+        fi
+    fi
+
+    # Post-installation update check
+    if [ -n "$update_mgr" ]; then
+        read -p "[?] All dependencies verified. Would you like to check for updates on them now? (yes/no): " upd_choice
+        if [[ "$upd_choice" =~ ^[Yy] ]]; then
+            echo "[+] Checking for updates for bettercap, macchanger, and iproute2..."
+            eval "$update_mgr bettercap macchanger iproute2"
+            echo "[+] Update check complete."
+        fi
+    fi
+}
+
 uninstall_app() {
     echo "[+] Uninstalling $APP_NAME..."
     if [ -f "$INSTALL_PATH" ]; then
@@ -100,6 +163,7 @@ uninstall_app() {
 }
 
 check_and_install_go
+check_runtime_dependencies
 
 GLOBAL_INSTALLED=false
 if [ -f "$INSTALL_PATH" ]; then

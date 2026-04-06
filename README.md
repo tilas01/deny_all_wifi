@@ -1,4 +1,4 @@
-# deny_all_wifi v1.4.0: Bettercap ARP.Ban Auto-Execution Module
+# deny_all_wifi v1.5.0: Bettercap ARP.Ban Auto-Execution Module
 
 A professional, automated wrapper designed to streamline network security testing using Bettercap's `arp.ban` module. **deny_all_wifi** simplifies complex network auditing tasks into a reliable, automated workflow.
 
@@ -31,6 +31,7 @@ To use this tool, your system must meet the following criteria:
     *   **Build:** `golang` (only required if compiling from source).
 
 > **Note:** The application performs a dependency check upon launch. If tools are missing, the software will provide guidance or offer to install them via your system package manager.
+> **New in v1.5.0:** Both the Go and Bash versions support automated dependency installation and update checking.
 
 ## Project Overview
 **deny_all_wifi** is an automation utility that simplifies the process of performing ARP spoofing and Denial of Service (DoS) testing. It eliminates the need for manual command construction by automatically scanning for wireless interfaces, randomizing hardware addresses for OPSEC, and deploying a pre-configured Bettercap attack sequence.
@@ -65,7 +66,7 @@ The program follows a logical security workflow:
 5.  **Attack Deployment:** Constructs a Bettercap script based on your profile and launches the `arp.ban` module.
 
 ## Features
-*   **Automatic Dependency Check:** Detects and offers to install missing tools like `bettercap`, `macchanger`, and `iproute2`.
+*   **Automatic Dependency Check & Updates:** Detects and offers to install missing tools like `bettercap`, `macchanger`, and `iproute2` (available in both Go and Bash). Offers update checks post-initialization.
 *   **Intelligent Configuration:** Supports both "Default" quick-start and "Interactive" custom setups.
 *   **Persistent Settings:** Saves your preferences to a dedicated directory for future use.
 *   **MAC Details Preview:** Displays a clear summary of your Permanent vs. New MAC address.

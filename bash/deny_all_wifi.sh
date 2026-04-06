@@ -2,7 +2,7 @@
 
 clear
 echo "---------------------------------------------------------"
-echo "   deny_all_wifi v1.4.0 (Bash): BETTERCAP ARP.BAN AUTOMATION"
+echo "   deny_all_wifi v1.5.0 (Bash): BETTERCAP ARP.BAN AUTOMATION"
 echo "---------------------------------------------------------"
 echo ""
 
@@ -74,17 +74,20 @@ while true; do
 done
 
 program_check() {
-	local req_cmds=("bettercap" "macchanger" "ip")
+	local req_pkgs=("bettercap" "macchanger" "iproute2")
 	local missing_pkgs=()
 
 	echo "[+] Running dependency check..."
 
-	for cmd in "${req_cmds[@]}"; do
-		if command -v "$cmd" >/dev/null 2>&1; then
-			echo "[+] '$cmd' is already installed."
+	for pkg in "${req_pkgs[@]}"; do
+		local check_bin="$pkg"
+		[[ "$pkg" == "iproute2" ]] && check_bin="ip"
+
+		if command -v "$check_bin" >/dev/null 2>&1; then
+			echo "[+] '$pkg' is already installed."
 		else
-			echo "[-] '$cmd' is NOT installed."
-			missing_pkgs+=("$cmd")
+			echo "[-] '$pkg' (binary '$check_bin') is NOT installed."
+			missing_pkgs+=("$pkg")
 		fi
 	done
 
@@ -125,18 +128,21 @@ program_check() {
 	if [ -z "$manager" ]; then
 		echo "[-] ERROR: No recognized package manager (apt, pacman, dnf, zypper) found."
 		echo "[-] Please install the missing packages manually."
-		echo "[-] The missing dependencies are: bettercap, macchanger, ip, iproute2)"
+		echo "[-] The missing dependencies are: ${missing_pkgs[*]}"
 		exit 1
 	fi
 
 	for pkg in "${missing_pkgs[@]}"; do
+		read -p "[?] Install package '$pkg'? (yes/no): " pkg_choice
+		if [[ ! "$pkg_choice" =~ ^[Yy] ]]; then
+			echo "[-] Skipping '$pkg'. Dependency check failed."
+			exit 1
+		fi
+
 		echo "[i] Installing '$pkg'..."
-		local install_name="$pkg"
-		if [[ "$pkg" == "ip" ]]; then install_name="iproute2"; fi
+		eval "$manager $pkg"
 
-		eval "$manager $install_name"
-
-		if command -v "$pkg" >/dev/null 2>&1; then
+		if [[ "$pkg" != "iproute2" ]] && command -v "$pkg" >/dev/null 2>&1 || [[ "$pkg" == "iproute2" ]] && command -v "ip" >/dev/null 2>&1; then
 			echo "[+] Successfully installed '$pkg'."
 		else
 			echo "[-] ERROR: Failed to install '$pkg'."
@@ -148,6 +154,28 @@ program_check() {
 }
 
 program_check
+
+check_updates() {
+	read -p "[?] Would you like to check for updates on dependencies now? (yes/no): " upd_choice
+	if [[ "$upd_choice" =~ ^[Yy] ]]; then
+		local upd_mgr=""
+		if command -v apt >/dev/null 2>&1; then upd_mgr="apt-get update && apt-get install --only-upgrade -y"
+		elif command -v pacman >/dev/null 2>&1; then upd_mgr="pacman -Sy --noconfirm"
+		elif command -v dnf >/dev/null 2>&1; then upd_mgr="dnf upgrade -y"
+		elif command -v zypper >/dev/null 2>&1; then upd_mgr="zypper update -y"
+		fi
+
+		if [ -n "$upd_mgr" ]; then
+			echo "[+] Checking for updates for bettercap, macchanger, and iproute2..."
+			eval "$upd_mgr bettercap macchanger iproute2"
+			echo "[+] Update check complete."
+		else
+			echo "[-] Could not detect package manager for updates."
+		fi
+	fi
+}
+
+check_updates
 
 echo -e "\n[+] Scanning for Wi-Fi Interfaces...\n"
 printf "%-4s | %-15s | %-15s | %-45s | %-15s\n" "Num" "Interface" "IPv4" "IPv6" "Gateway"

@@ -14,7 +14,7 @@ import (
 
 const (
 	ConfigFileName = "deny_all_wifi.conf"
-	Version        = "1.4.0"
+	Version        = "1.5.0"
 )
 
 type Config struct {
@@ -36,6 +36,7 @@ func main() {
 	}
 
 	performDependencyCheck()
+	checkForUpdates()
 
 	iface := selectInterface()
 
@@ -134,11 +135,14 @@ func confirmLegal() bool {
 func performDependencyCheck() {
 	fmt.Println("[+] Running dependency check...")
 	missing := []string{}
-	cmds := []string{"bettercap", "macchanger", "ip"}
+	cmds := []string{"bettercap", "macchanger", "iproute2"}
 
 	for _, c := range cmds {
-		if _, err := exec.LookPath(c); err != nil {
-			fmt.Printf("[-] '%s' is NOT installed.\n", c)
+		checkBin := c
+		if c == "iproute2" { checkBin = "ip" }
+
+		if _, err := exec.LookPath(checkBin); err != nil {
+			fmt.Printf("[-] Package '%s' (binary '%s') is NOT installed.\n", c, checkBin)
 			missing = append(missing, c)
 		} else {
 			fmt.Printf("[+] '%s' is installed.\n", c)
@@ -146,8 +150,63 @@ func performDependencyCheck() {
 	}
 
 	if len(missing) > 0 {
-		fmt.Printf("\n[!] Missing: %v. Please install them using your package manager.\n", missing)
-		os.Exit(1)
+		fmt.Printf("\n[!] The following dependencies are missing: %v\n", missing)
+		if askYesNo("Would you like to attempt to auto-install them now?") == "no" {
+			fmt.Println("[-] Dependency check failed. Exiting.")
+			os.Exit(1)
+		}
+
+		installCmd, _ := getPackageManager()
+		if installCmd == "" {
+			fmt.Println("[-] ERROR: No recognized package manager found. Please install manually.")
+			os.Exit(1)
+		}
+
+		for _, pkg := range missing {
+			if askYesNo("Install package '" + pkg + "'?") == "yes" {
+				fmt.Printf("[i] Installing '%s'...\n", pkg)
+				cmd := exec.Command("sh", "-c", installCmd+" "+pkg)
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				if err := cmd.Run(); err != nil {
+					fmt.Printf("[-] ERROR: Failed to install '%s'.\n", pkg)
+					os.Exit(1)
+				}
+			} else {
+				fmt.Printf("[-] Skipping '%s'. Dependency check failed.\n", pkg)
+				os.Exit(1)
+			}
+		}
+		fmt.Println("[+] All dependencies installed successfully.")
+	}
+}
+
+func getPackageManager() (string, string) {
+	if _, err := exec.LookPath("apt-get"); err == nil {
+		return "apt-get update && apt-get install -y", "apt-get install --only-upgrade -y"
+	} else if _, err := exec.LookPath("pacman"); err == nil {
+		return "pacman -Sy --noconfirm", "pacman -S --noconfirm"
+	} else if _, err := exec.LookPath("dnf"); err == nil {
+		return "dnf install -y", "dnf upgrade -y"
+	} else if _, err := exec.LookPath("zypper"); err == nil {
+		return "zypper install -y", "zypper update -y"
+	}
+	return "", ""
+}
+
+func checkForUpdates() {
+	if askYesNo("Would you like to check for updates on dependencies now?") == "yes" {
+		_, updateCmd := getPackageManager()
+		if updateCmd != "" {
+			fmt.Println("[+] Checking for updates for bettercap, macchanger, and iproute2...")
+			cmd := exec.Command("sh", "-c", updateCmd+" bettercap macchanger iproute2")
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			cmd.Run()
+			fmt.Println("[+] Update check complete.")
+		} else {
+			fmt.Println("[-] Could not detect package manager for updates.")
+		}
 	}
 }
 
