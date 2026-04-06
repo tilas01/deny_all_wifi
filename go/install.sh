@@ -10,6 +10,34 @@ echo "[+] Starting professional build process for $APP_NAME..."
 
 GO_WAS_INSTALLED=false
 
+purge_go() {
+    if ! command -v go &> /dev/null; then
+        echo "[i] Go is not currently installed. No cleanup needed."
+        return
+    fi
+
+    echo "[+] Purging Go (golang) build environment..."
+    echo "[i] This helps save system storage and keeps your environment clean."
+    
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get purge -y golang*
+        sudo apt-get autoremove -y
+    elif command -v pacman &> /dev/null; then
+        sudo pacman -Rs --noconfirm go
+    elif command -v dnf &> /dev/null; then
+        sudo dnf remove -y golang
+    elif command -v zypper &> /dev/null; then
+        sudo zypper remove -y go
+    fi
+    echo "[+] Go compiler has been removed."
+}
+
+# Support for manual cleanup via flag
+if [[ "$1" == "--cleanup-go" ]]; then
+    purge_go
+    exit 0
+fi
+
 check_and_install_go() {
     if ! command -v go &> /dev/null; then
         echo "[-] Go compiler not found."
@@ -53,6 +81,11 @@ uninstall_app() {
         echo "[i] Binary not found in $INSTALL_PATH."
     fi
 
+    if command -v go &> /dev/null; then
+        read -p "[?] Go compiler detected. Would you like to uninstall Go as well? (yes/no): " purge_choice
+        [[ "$purge_choice" =~ ^[Yy]$ ]] && purge_go
+    fi
+
     read -p "[?] Do you also want to remove the configuration file ($APP_NAME.conf) from the current directory? (yes/no): " remove_config_choice
     if [[ "$remove_config_choice" =~ ^[Yy]$ ]]; then
         if [ -f "$APP_NAME.conf" ]; then
@@ -83,9 +116,10 @@ SHOULD_INSTALL_GLOBAL=false
 
 if $GLOBAL_INSTALLED; then
     echo "[i] $APP_NAME is currently installed globally at $INSTALL_PATH."
-    read -p "[?] Do you want to 'uninstall' it, 'recompile' and install globally, or 'build_local'? (uninstall/recompile/build_local): " action_choice
+    read -p "[?] Action: 'uninstall', 'recompile', 'build_local', or 'cleanup_go'? (u/r/b/c): " action_choice
     case "$action_choice" in
         [Uu]* ) uninstall_app ;;
+        [Cc]* ) purge_go ; exit 0 ;;
         [Rr]* )
                 echo "[+] Recompiling and installing globally..."
                 SHOULD_INSTALL_GLOBAL=true
@@ -150,6 +184,13 @@ else
     chmod +x "./$APP_NAME"
 fi
 
+if [ "$GO_WAS_INSTALLED" = true ]; then
+    echo "---------------------------------------------------------"
+    echo "[i] This script automatically installed the Go compiler to build the app."
+    read -p "[?] Would you like to purge the Go compiler now to save space? (yes/no): " purge_choice
+    [[ "$purge_choice" =~ ^[Yy]$ ]] && purge_go
+fi
+
 echo "---------------------------------------------------------"
 if $SHOULD_INSTALL_GLOBAL; then
     echo "  Build Finished. Run with: sudo $APP_NAME"
@@ -164,26 +205,6 @@ else
     if [[ "$run_choice" =~ ^[Yy]$ ]]; then
         clear
         sudo "./$APP_NAME" "$@"
-    fi
-fi
-
-if [ "$GO_WAS_INSTALLED" = true ]; then
-    echo "---------------------------------------------------------"
-    echo "[?] This script automatically installed the Go compiler to build the app."
-    read -p "[?] Would you like to purge Go and all its build dependencies now? (yes/no): " purge_choice
-    if [[ "$purge_choice" =~ ^[Yy]$ ]]; then
-        echo "[+] Purging Go and build dependencies..."
-        if command -v apt-get &> /dev/null; then
-            sudo apt-get purge -y golang*
-            sudo apt-get autoremove -y
-        elif command -v pacman &> /dev/null; then
-            sudo pacman -Rs --noconfirm go
-        elif command -v dnf &> /dev/null; then
-            sudo dnf remove -y golang
-        elif command -v zypper &> /dev/null; then
-            sudo zypper remove -y go
-        fi
-        echo "[+] Build environment purged."
     fi
 fi
 

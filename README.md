@@ -93,6 +93,13 @@ The easiest way to install is using the provided `install.sh` script. This scrip
     ```
 3.  Follow the prompts to either install globally (to `/usr/local/bin`) or keep the binary local.
 
+### Maintenance & Cleanup
+To remove the Go compiler and save system storage after building, you can use the built-in cleanup flag:
+```bash
+sudo ./go/install.sh --cleanup-go
+```
+*This only removes the compiler; your compiled `deny_all_wifi` binary will remain functional.*
+
 ## Usage
 
 ### If Installed Globally:
