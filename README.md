@@ -1,4 +1,4 @@
-# deny_all_wifi v1.2.0: Bettercap ARP.Ban Auto-Execution Module
+# deny_all_wifi v1.4.0: Bettercap ARP.Ban Auto-Execution Module
 
 A professional, automated wrapper designed to streamline network security testing using Bettercap's `arp.ban` module. **deny_all_wifi** simplifies complex network auditing tasks into a reliable, automated workflow.
 
