@@ -114,9 +114,11 @@ sudo ./deny_all_wifi
 5.  **Press `Ctrl+C`** at any time to stop the attack and return the network to normal.
 
 ## Configuration
-The configuration file is stored globally to ensure your settings persist regardless of how or where you run the tool:
+Regardless of whether you install the application globally or run it as a local binary from the current path, the configuration file is stored in a centralized directory to ensure your settings persist:
 
 `~/bettercap_conf/deny_all_wifi.conf`
+
+> **Note:** This shared configuration path allows you to switch between the Go and Bash versions seamlessly without losing your preferences.
 
 | Setting | Description |
 | :--- | :--- |

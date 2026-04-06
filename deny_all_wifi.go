@@ -14,7 +14,7 @@ import (
 
 const (
 	ConfigFileName = "deny_all_wifi.conf"
-	Version        = "1.0.0"
+	Version        = "1.2.0"
 )
 
 type Config struct {
@@ -57,7 +57,7 @@ func clearScreen() {
 
 func printHeader() {
 	fmt.Println("---------------------------------------------------------")
-	fmt.Println("         BETTERCAP ARP.BAN AUTO-EXECUTION MODULE         ")
+	fmt.Printf("   deny_all_wifi v%s (Go): BETTERCAP ARP.BAN AUTOMATION\n", Version)
 	fmt.Println("---------------------------------------------------------")
 	fmt.Println("")
 }

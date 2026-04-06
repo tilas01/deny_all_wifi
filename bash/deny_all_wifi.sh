@@ -2,7 +2,7 @@
 
 clear
 echo "---------------------------------------------------------"
-echo "         BETTERCAP ARP.BAN AUTO-EXECUTION MODULE         "
+echo "   deny_all_wifi v1.2.0 (Bash): BETTERCAP ARP.BAN AUTOMATION"
 echo "---------------------------------------------------------"
 echo ""
 
@@ -59,9 +59,6 @@ echo -e "[!] ONLY run this script on networks you own or where you have"
 echo -e "    explicit permission from the owner to perform testing. [!]\n"
 echo "This script requires root privileges. It will block ALL"
 echo "devices on the network unless whitelisted via ARP poisoning."
-echo "-------------------------------------------------------------"
-
-echo "Bettercap 'arp.ban' module and other integrated utilities."
 echo "-------------------------------------------------------------"
 
 while true; do
@@ -319,20 +316,16 @@ while true; do
 		break
 	else
 		setup_config
-		echo -e "\n[+] Configuration has been updated and saved."
-		read -p "[?] Would you like to 'continue' with the current execution, 'restart' the script, or 'exit'? (continue/restart/exit): " post_setup_choice
-		case "$(echo "$post_setup_choice" | tr '[:upper:]' '[:lower:]')" in
-			restart|r)
+		echo -e "\n[+] Configuration updated."
+		read -p "[?] Continue, Restart, or Exit? (c/r/e): " choice
+		case "${choice,,}" in
+			r)
 				echo "[+] Restarting script to apply all changes..."
-				clear
 				exec "$0" "$@"
 				;;
-			exit|e)
+			e)
 				echo "[+] Exiting."
 				exit 0
-				;;
-			*)
-				echo "[+] Continuing with new profile..."
 				;;
 		esac
 	fi

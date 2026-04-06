@@ -79,6 +79,7 @@ if [ -f "./$APP_NAME" ]; then
 fi
 
 action_choice=""
+SHOULD_INSTALL_GLOBAL=false
 
 if $GLOBAL_INSTALLED; then
     echo "[i] $APP_NAME is currently installed globally at $INSTALL_PATH."
@@ -87,9 +88,11 @@ if $GLOBAL_INSTALLED; then
         [Uu]* ) uninstall_app ;;
         [Rr]* )
                 echo "[+] Recompiling and installing globally..."
+                SHOULD_INSTALL_GLOBAL=true
                 ;;
         [Bb]* )
-                echo "[+] Building locally..."
+                echo "[+] Building locally in current directory..."
+                SHOULD_INSTALL_GLOBAL=false
                 LOCAL_BINARY_EXISTS=false
                 ;;
         * ) echo "[-] Invalid choice. Exiting." ; exit 1 ;;
@@ -103,7 +106,7 @@ elif $LOCAL_BINARY_EXISTS; then
                 ;;
         [Ii]* )
                 echo "[+] Installing globally..."
-                GLOBAL_INSTALLED=true
+                SHOULD_INSTALL_GLOBAL=true
                 ;;
         [Uu]* )
                 echo "[+] Running existing local binary..."
@@ -118,10 +121,10 @@ else
     case "$action_choice" in
         [Ii]* )
                 echo "[+] Installing globally..."
-                GLOBAL_INSTALLED=true
+                SHOULD_INSTALL_GLOBAL=true
                 ;;
         [Bb]* )
-                echo "[+] Building locally..."
+                echo "[+] Building locally in current directory..."
                 ;;
         * ) echo "[-] Invalid choice. Exiting." ; exit 1 ;;
     esac
@@ -137,18 +140,18 @@ else
     exit 1
 fi
 
-if $GLOBAL_INSTALLED || [[ "$action_choice" =~ ^[Ii]*$ ]]; then
+if $SHOULD_INSTALL_GLOBAL; then
     echo "[+] Installing binary to $INSTALL_PATH..."
     sudo mv "$APP_NAME" "$INSTALL_PATH"
     sudo chmod +x "$INSTALL_PATH"
     echo "[+] Installation complete! You can now run '$APP_NAME' from anywhere."
 else
-    echo "[i] Binary kept in current directory as './$APP_NAME'."
+    echo "[i] Binary kept in the current path as './$APP_NAME'."
     chmod +x "./$APP_NAME"
 fi
 
 echo "---------------------------------------------------------"
-if $GLOBAL_INSTALLED || [[ "$action_choice" =~ ^[Ii]*$ ]]; then
+if $SHOULD_INSTALL_GLOBAL; then
     echo "  Build Finished. Run with: sudo $APP_NAME"
     read -p "[?] Do you want to run the installed application now? (yes/no): " run_choice
     if [[ "$run_choice" =~ ^[Yy]$ ]]; then
@@ -184,7 +187,7 @@ if [ "$GO_WAS_INSTALLED" = true ]; then
     fi
 fi
 
-if $GLOBAL_INSTALLED || [[ "$action_choice" =~ ^[Rr]*$ ]]; then
+if $SHOULD_INSTALL_GLOBAL; then
     echo "[+] Cleaning up temporary build artifacts..."
     rm -f "$APP_NAME" 2>/dev/null
 fi
