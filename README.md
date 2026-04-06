@@ -7,6 +7,7 @@ Originally developed as a private Bash tool, this project has been completely re
 ## Table of Contents
 - [Requirements](#requirements)
 - [Project Overview](#project-overview)
+- [Demo](#demo)
 - [Legal Warning & Disclaimer](#legal-warning--disclaimer)
 - [How It Works](#how-it-works)
 - [Features](#features)
@@ -33,6 +34,15 @@ To use this tool, your system must meet the following criteria:
 
 ## Project Overview
 **deny_all_wifi** is an automation utility that simplifies the process of performing ARP spoofing and Denial of Service (DoS) testing. It eliminates the need for manual command construction by automatically scanning for wireless interfaces, randomizing hardware addresses for OPSEC, and deploying a pre-configured Bettercap attack sequence.
+
+## Demo
+### Interface Selection & Configuration
+The application identifies active Wi-Fi adapters and provides an interactive setup for attack parameters.
+![Interface Selection](img/demo1.png)
+
+### Active Attack Deployment
+Real-time feedback during the Bettercap execution sequence.
+![Attack Execution](img/demo2.png)
 
 ## Legal Warning & Disclaimer
 **[!] IMPORTANT: READ CAREFULLY [!]**
